@@ -6,6 +6,60 @@ from stable_baselines.common.atari_wrappers import make_atari, wrap_deepmind
 import os
 from IPython import display
 import matplotlib.pyplot as plt
+import time
+# from pynput.keyboard import Key, Listener
+
+class KeyListener:
+    def __init__(self, env):
+        meaning = env.unwrapped.get_action_meanings()
+        self.meaning_to_action = dict(zip(meaning, list(range(len(meaning)))))
+        self.time_between_frames = 0.1
+    current_act = self.meaning_to_action["NOOP"]
+    key_mapping = {'a': "LEFT", "d": "RIGHT", "w": "UP", "s": "DOWN", Key.space: "FIRE"}
+    def on_press(key): 
+        if key in self.key_mapping:
+            self.current_act = self.meaning_to_action[key_mapping[key]]
+        elif key == "+":
+            self.time_between_frames /= 2
+        elif key == "-":
+            self.time_between_frames *= 2
+    def on_release(key):
+        if key in self.key_mapping:
+            self.current_act = self.meaning_to_action["NOOP"]
+        if key == Key.esc:
+            # Stop listener
+            return False
+
+def get_trajectories_continuous(env, num_trajectories, get_human_act):
+    trajectories = []
+    key_listener = KeyListener(env)
+    with Listener(on_press=key_listener.on_press,on_release=key_listener.on_release) as listener:
+        listener.join()
+    for i in range(num_trajectories):
+        traj = {"obs": [], "act": [], "rew": [], "obs_after": []}
+        obs = env.reset()
+        reward = 0
+        total_reward = 0
+        step = 0
+        while True:
+            time.sleep(key_listener.time_between_frames)
+            print(f"reward: {reward}, total reward: {total_reward}")
+            traj["obs"].append(obs)
+            env.render()
+            act = key_listener
+            traj["act"].append(act)
+            obs, reward, done, info = env.step(act)
+            traj["obs_after"].append(obs)
+            traj["rew"].append(reward)
+            step += 1
+            total_reward += reward
+            if done:
+                break
+        trajectories.append(traj)
+    env.close()
+    return trajectories
+
+
 
 def show_state(env, step, info):
     plt.figure(3)
