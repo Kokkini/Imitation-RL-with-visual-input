@@ -7,11 +7,11 @@ import os
 from IPython import display
 import matplotlib.pyplot as plt
 import time
-from pynput.keyboard import Key, Listener
+from pynput.keyboard import Key, Listener, KeyCode
 
 class KeyListener:
 
-    key_mapping = {'a': "LEFT", "d": "RIGHT", "w": "UP", "s": "DOWN", Key.space: "FIRE"}
+    key_mapping = {KeyCode.from_char('a'): "LEFT", KeyCode.from_char('d'): "RIGHT", KeyCode.from_char('w'): "UP", KeyCode.from_char("s"): "DOWN", Key.space: "FIRE"}
 
     def __init__(self, env):
         meaning = env.unwrapped.get_action_meanings()
@@ -20,14 +20,15 @@ class KeyListener:
         self.current_act = self.meaning_to_action["NOOP"]
 
     def on_press(self, key):
-        if key in self.key_mapping:
+        if key in self.key_mapping and self.key_mapping[key] in self.meaning_to_action:
             self.current_act = self.meaning_to_action[self.key_mapping[key]]
-        elif key == "+":
+        elif key == KeyCode.from_char("+"):
             self.time_between_frames /= 2
-        elif key == "-":
+        elif key == KeyCode.from_char("-"):
             self.time_between_frames *= 2
+
     def on_release(self, key):
-        if key in self.key_mapping:
+        if key in self.key_mapping and self.key_mapping[key] in self.meaning_to_action:
             self.current_act = self.meaning_to_action["NOOP"]
         if key == Key.esc:
             return False
@@ -35,8 +36,9 @@ class KeyListener:
 def get_trajectories_continuous(env, num_trajectories, get_human_act):
     trajectories = []
     key_listener = KeyListener(env)
-    with Listener(on_press=key_listener.on_press,on_release=key_listener.on_release) as listener:
-        listener.join()
+    Listener(on_press=key_listener.on_press, on_release=key_listener.on_release).start()
+    # with Listener(on_press=key_listener.on_press,on_release=key_listener.on_release) as listener:
+    #     listener.join()
     for i in range(num_trajectories):
         traj = {"obs": [], "act": [], "rew": [], "obs_after": []}
         obs = env.reset()
@@ -48,7 +50,8 @@ def get_trajectories_continuous(env, num_trajectories, get_human_act):
             print(f"reward: {reward}, total reward: {total_reward}")
             traj["obs"].append(obs)
             env.render()
-            act = key_listener
+            act = key_listener.current_act
+            print(f"action: {act}")
             traj["act"].append(act)
             obs, reward, done, info = env.step(act)
             traj["obs_after"].append(obs)
