@@ -8,6 +8,7 @@ from IPython import display
 import matplotlib.pyplot as plt
 import time
 from pynput.keyboard import Key, Listener, KeyCode
+import dill
 
 class KeyListener:
 
@@ -158,7 +159,7 @@ if __name__ == "__main__":
 
     trajectory_file = os.path.join(log_dir, f"{env_name}_expert.pkl")
     with open(trajectory_file, "wb") as f:
-        pickle.dump(trajectories, f)
+        dill.dump(trajectories, f)
 
 
 
