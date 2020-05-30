@@ -7,27 +7,29 @@ import os
 from IPython import display
 import matplotlib.pyplot as plt
 import time
-# from pynput.keyboard import Key, Listener
+from pynput.keyboard import Key, Listener
 
 class KeyListener:
+
+    key_mapping = {'a': "LEFT", "d": "RIGHT", "w": "UP", "s": "DOWN", Key.space: "FIRE"}
+
     def __init__(self, env):
         meaning = env.unwrapped.get_action_meanings()
         self.meaning_to_action = dict(zip(meaning, list(range(len(meaning)))))
         self.time_between_frames = 0.1
-    current_act = self.meaning_to_action["NOOP"]
-    key_mapping = {'a': "LEFT", "d": "RIGHT", "w": "UP", "s": "DOWN", Key.space: "FIRE"}
-    def on_press(key): 
+        self.current_act = self.meaning_to_action["NOOP"]
+
+    def on_press(self, key):
         if key in self.key_mapping:
-            self.current_act = self.meaning_to_action[key_mapping[key]]
+            self.current_act = self.meaning_to_action[self.key_mapping[key]]
         elif key == "+":
             self.time_between_frames /= 2
         elif key == "-":
             self.time_between_frames *= 2
-    def on_release(key):
+    def on_release(self, key):
         if key in self.key_mapping:
             self.current_act = self.meaning_to_action["NOOP"]
         if key == Key.esc:
-            # Stop listener
             return False
 
 def get_trajectories_continuous(env, num_trajectories, get_human_act):
@@ -141,12 +143,13 @@ if __name__ == "__main__":
     # num_tasks = 2
     # work_per_task = 8
     # env = Room(room_size, num_tasks, work_per_task, max_steps=200)
-    log_dir = "/content/drive/My Drive/Colab Notebooks/imitation_RL"
+    # log_dir = "/content/drive/My Drive/Colab Notebooks/imitation_RL"
+    log_dir = "."
     env_name = "BreakoutNoFrameskip-v4"
     env = gym.make(env_name)
     env = wrap_deepmind(env)
     num_trajectories = 1
-    trajectories = get_trajectories_notebook(env, num_trajectories, get_human_act)
+    trajectories = get_trajectories_continuous(env, num_trajectories, get_human_act)
     print(f"average reward: {np.mean([sum(traj['rew']) for traj in trajectories])}")
     print()
 
