@@ -60,12 +60,12 @@ def get_trajectories_notebook(env, num_trajectories, get_human_act):
     for i in range(num_trajectories):
         traj = {"obs": [], "act": [], "rew": [], "obs_after": []}
         obs = env.reset()
-        score = 0
-        diffScore = 0
+        reward = 0
+        total_reward = 0
         step = 0
         while True:
             show_state(env, step, str(score))
-            print(f"reward: {diffScore}, score: {score}")
+            print(f"reward: {reward}, total reward: {total_reward}")
             traj["obs"].append(obs)
             # env.render()
             act = get_human_act(env)
@@ -74,6 +74,7 @@ def get_trajectories_notebook(env, num_trajectories, get_human_act):
             traj["obs_after"].append(obs)
             traj["rew"].append(reward)
             step += 1
+            total_reward += reward
             if done:
                 break
         trajectories.append(traj)
