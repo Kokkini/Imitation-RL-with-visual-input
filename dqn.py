@@ -160,7 +160,7 @@ class DQN(OffPolicyRLModel):
         # doesn't work with vec_normalized environments
         obs, action, reward, new_obs, done = self.expert_exp[self.expert_ix]
         self.replay_buffer.add(obs, action, reward, new_obs, float(done))
-        self.expert_ix = (self.expert_ix + 1) % len(self.expert_exp)
+        self.expert_ix = (self.expert_ix - 1) % len(self.expert_exp)
 
 
     def learn(self, total_timesteps, callback=None, log_interval=100, tb_log_name="DQN",
