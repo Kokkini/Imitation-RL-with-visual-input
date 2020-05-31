@@ -58,8 +58,8 @@ def load_expert_exp(path):
     trajectories = load_expert_trajectory(path)
     return trajectory_to_exp(trajectories)
 
-log_dir = "."
-expert_traj_path = "BreakoutNoFrameskip-v4_expert.pkl"
+log_dir = input("log dir: ")
+expert_traj_path = input("expert trajectory path")
 os.makedirs(log_dir, exist_ok=True)
 env = gym.make('BreakoutNoFrameskip-v4')
 env = wrap_deepmind(env, frame_stack=True, clip_rewards=False)
@@ -68,8 +68,8 @@ expert_exp = load_expert_exp(expert_traj_path)
 
 
 
-model = DQN(CnnPolicy, env, verbose=1, prioritized_replay=True, buffer_size= 100000,
-            exploration_final_eps=0.1, train_freq=4, batch_size=64, expert_exp=expert_exp)
+model = DQN(CnnPolicy, env, verbose=1, prioritized_replay=True, buffer_size= 200000,
+            exploration_final_eps=0.1, train_freq=4, batch_size=128, expert_exp=expert_exp)
 # model = ACKTR(CnnPolicy, env)
 model.learn(total_timesteps=int(1e6), callback=callback)
 
