@@ -34,13 +34,14 @@ class KeyListener:
         if key == Key.esc:
             return False
 
-def get_trajectories_continuous(env, num_trajectories, get_human_act):
+def get_trajectories_continuous(env, num_trajectories, get_human_act, lowest_reward=None):
     trajectories = []
     key_listener = KeyListener(env)
     Listener(on_press=key_listener.on_press, on_release=key_listener.on_release).start()
     # with Listener(on_press=key_listener.on_press,on_release=key_listener.on_release) as listener:
     #     listener.join()
-    for i in range(num_trajectories):
+    i = 0
+    while i < num_trajectories:
         traj = {"obs": [], "act": [], "rew": [], "obs_after": []}
         obs = env.reset()
         reward = 0
@@ -48,7 +49,7 @@ def get_trajectories_continuous(env, num_trajectories, get_human_act):
         step = 0
         while True:
             time.sleep(key_listener.time_between_frames)
-            print(f"reward: {reward}, total reward: {total_reward}")
+            print(f"trajectory: {i}, reward: {reward}, total reward: {total_reward}")
             traj["obs"].append(obs)
             env.render()
             act = key_listener.current_act
@@ -61,7 +62,10 @@ def get_trajectories_continuous(env, num_trajectories, get_human_act):
             total_reward += reward
             if done:
                 break
+        if lowest_reward is not None and total_reward < lowest_reward:
+            continue
         trajectories.append(traj)
+        i += 1
     env.close()
     return trajectories
 
@@ -151,9 +155,9 @@ if __name__ == "__main__":
     log_dir = "."
     env_name = "BreakoutNoFrameskip-v4"
     env = gym.make(env_name)
-    env = wrap_deepmind(env)
+    env = wrap_deepmind(env, frame_stack=True, clip_rewards=False)
     num_trajectories = 1
-    trajectories = get_trajectories_continuous(env, num_trajectories, get_human_act)
+    trajectories = get_trajectories_continuous(env, num_trajectories, get_human_act, lowest_reward=30)
     print(f"average reward: {np.mean([sum(traj['rew']) for traj in trajectories])}")
     print()
 
